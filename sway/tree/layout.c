@@ -177,7 +177,38 @@ void container_move_to(struct sway_container *container,
 
 void container_move(struct sway_container *container,
 		enum movement_direction dir, int move_amt) {
-	// TODO
+	struct sway_container *dest = container;
+	// Determine dest
+	int offs = dir == MOVE_LEFT || dir == MOVE_UP ? -1 : 1;
+	int i;
+	for (i = 0; i < container->parent->children->length; ++i) {
+		if (container->parent->children->items[i] == container) {
+			break;
+		}
+	}
+	if (!sway_assert(i < container->parent->children->length,
+				"container is not among parent's children")) {
+		return;
+	}
+	if (i + offs < 0 || i + offs >= dest->parent->children->length) {
+		wlr_log(L_DEBUG, "Selecting parent");
+		dest = dest->parent;
+	} else {
+		wlr_log(L_DEBUG, "Selecting sibling (%d)", offs);
+		dest = dest->parent->children->items[i + offs];
+	}
+	wlr_log(L_DEBUG, "Moving %p %s '%s' to %p %s '%s'",
+			container, container_type_to_str(container->type), container->name,
+			dest, container_type_to_str(dest->type), dest->name);
+	// Move to dest
+	if (dest->type == C_VIEW) {
+		// Swap
+		dest->parent->children->items[i + offs] = container;
+		dest->parent->children->items[i] = dest;
+		arrange_windows(container->parent, -1, -1);
+	} else {
+		container_move_to(container, dest);
+	}
 }
 
 enum sway_container_layout container_get_default_layout(
@@ -317,6 +348,7 @@ void arrange_windows(struct sway_container *container,
 			container->children->length);
 		break;
 	}
+	output_damage_whole_container(container);
 }
 
 static void apply_horiz_layout(struct sway_container *container,

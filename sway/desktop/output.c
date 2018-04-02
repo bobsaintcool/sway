@@ -318,6 +318,15 @@ void output_damage_whole_view(struct sway_output *output,
 	output_damage_whole(output);
 }
 
+void output_damage_whole_container(struct sway_container *container) {
+	struct sway_container *output = container;
+	if (container->type != C_OUTPUT) {
+		output = container_parent(output, C_OUTPUT);
+	}
+	// TODO
+	output_damage_whole(output->sway_output);
+}
+
 static void damage_handle_destroy(struct wl_listener *listener, void *data) {
 	struct sway_output *output =
 		wl_container_of(listener, output, damage_destroy);
