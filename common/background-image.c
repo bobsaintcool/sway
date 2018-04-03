@@ -4,6 +4,24 @@
 #include "background-image.h"
 #include "cairo.h"
 
+enum background_mode parse_background_mode(const char *mode) {
+	if (strcmp(mode, "stretch") == 0) {
+		return BACKGROUND_MODE_STRETCH;
+	} else if (strcmp(mode, "fill") == 0) {
+		return BACKGROUND_MODE_FILL;
+	} else if (strcmp(mode, "fit") == 0) {
+		return BACKGROUND_MODE_FIT;
+	} else if (strcmp(mode, "center") == 0) {
+		return BACKGROUND_MODE_CENTER;
+	} else if (strcmp(mode, "tile") == 0) {
+		return BACKGROUND_MODE_TILE;
+	} else if (strcmp(mode, "solid_color") == 0) {
+		return BACKGROUND_MODE_SOLID_COLOR;
+	}
+	wlr_log(L_ERROR, "Unsupported background mode: %s", mode);
+	return BACKGROUND_MODE_INVALID;
+}
+
 cairo_surface_t *load_background_image(const char *path) {
 	cairo_surface_t *image;
 #ifdef HAVE_GDK_PIXBUF
@@ -90,6 +108,7 @@ void render_background_image(cairo_t *cairo, cairo_surface_t *image,
 		break;
 	}
 	case BACKGROUND_MODE_SOLID_COLOR:
+	case BACKGROUND_MODE_INVALID:
 		assert(0);
 		break;
 	}

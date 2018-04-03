@@ -157,24 +157,10 @@ int main(int argc, const char **argv) {
 	args.output_idx = atoi(argv[1]);
 	args.path = argv[2];
 
-	args.mode = BACKGROUND_MODE_STRETCH;
-	if (strcmp(argv[3], "stretch") == 0) {
-		args.mode = BACKGROUND_MODE_STRETCH;
-	} else if (strcmp(argv[3], "fill") == 0) {
-		args.mode = BACKGROUND_MODE_FILL;
-	} else if (strcmp(argv[3], "fit") == 0) {
-		args.mode = BACKGROUND_MODE_FIT;
-	} else if (strcmp(argv[3], "center") == 0) {
-		args.mode = BACKGROUND_MODE_CENTER;
-	} else if (strcmp(argv[3], "tile") == 0) {
-		args.mode = BACKGROUND_MODE_TILE;
-	} else if (strcmp(argv[3], "solid_color") == 0) {
-		args.mode = BACKGROUND_MODE_SOLID_COLOR;
-	} else {
-		wlr_log(L_ERROR, "Unsupported background mode: %s", argv[3]);
+	args.mode = parse_background_mode(argv[3]);
+	if (args.mode == BACKGROUND_MODE_INVALID) {
 		return 1;
 	}
-
 	if (!prepare_context(&state)) {
 		return 1;
 	}
@@ -202,10 +188,10 @@ int main(int argc, const char **argv) {
 	zwlr_layer_surface_v1_set_exclusive_zone(state.layer_surface, -1);
 	zwlr_layer_surface_v1_add_listener(state.layer_surface,
 			&layer_surface_listener, &state);
-	state.run_display = true;
 	wl_surface_commit(state.surface);
 	wl_display_roundtrip(state.display);
 
+	state.run_display = true;
 	while (wl_display_dispatch(state.display) != -1 && state.run_display) {
 		// This space intentionally left blank
 	}
